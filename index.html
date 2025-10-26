@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
   <head>
@@ -36,6 +37,839 @@
   </head>
   <body class="bg-sky-50 text-gray-800 antialiased">
     <div id="root"></div>
-    <script type="module" src="./index.tsx"></script>
+    <script type="module">
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+
+const { useState, useEffect, useMemo, useCallback, useRef } = React;
+
+// Data from services/vocabulary.ts
+const vocabularyData = [
+    {
+        "title": "Chủ đề 1 – School & Daily Activities (Cập nhật đầy đủ)",
+        "words": [
+            {"english": "school", "vietnamese": "trường học", "englishExample1": "I go to school at 7 a.m.", "englishExample2": "Our school is big and beautiful.", "vietnameseExample1": "Tôi đi học lúc 7 giờ.", "vietnameseExample2": "Trường chúng tôi lớn và đẹp."},
+            {"english": "classroom", "vietnamese": "phòng học", "englishExample1": "The classroom is very big.", "englishExample2": "Our classroom has thirty students.", "vietnameseExample1": "Phòng học rất rộng.", "vietnameseExample2": "Lớp chúng tôi có 30 học sinh."},
+            {"english": "class", "vietnamese": "lớp học", "englishExample1": "My class is on the first floor.", "englishExample2": "We have five classes today.", "vietnameseExample1": "Lớp của tôi ở tầng một.", "vietnameseExample2": "Hôm nay chúng tôi có năm tiết."},
+            {"english": "grade", "vietnamese": "khối lớp", "englishExample1": "Which grade are you in? — I’m in grade 6.", "englishExample2": "She moved to a higher grade this year.", "vietnameseExample1": "Bạn học lớp mấy? — Mình lớp 6.", "vietnameseExample2": "Cô ấy lên lớp cao hơn năm nay."},
+            {"english": "teacher", "vietnamese": "giáo viên", "englishExample1": "What is your teacher like?", "englishExample2": "My English teacher is kind and funny.", "vietnameseExample1": "Giáo viên của bạn như thế nào?", "vietnameseExample2": "Cô tiếng Anh của tôi hiền và vui."},
+            {"english": "student", "vietnamese": "học sinh", "englishExample1": "Every student must wear a uniform.", "englishExample2": "The new student is from Hue.", "vietnameseExample1": "Mỗi học sinh phải mặc đồng phục.", "vietnameseExample2": "Học sinh mới đến từ Huế."},
+            {"english": "homework", "vietnamese": "bài tập về nhà", "englishExample1": "I usually do my homework at night.", "englishExample2": "Don’t forget to hand in your homework.", "vietnameseExample1": "Tôi làm bài tập vào buổi tối.", "vietnameseExample2": "Đừng quên nộp bài tập."},
+            {"english": "exercise", "vietnamese": "bài tập", "englishExample1": "This exercise is easy.", "englishExample2": "Let’s do Exercise 3 together.", "vietnameseExample1": "Bài tập này dễ.", "vietnameseExample2": "Hãy làm bài tập số 3 cùng nhau."},
+            {"english": "exam", "vietnamese": "kỳ thi", "englishExample1": "I’m studying for my exam.", "englishExample2": "The final exam is next Monday.", "vietnameseExample1": "Tôi đang ôn thi.", "vietnameseExample2": "Kỳ thi cuối kỳ vào thứ Hai tới."},
+            {"english": "test", "vietnamese": "bài kiểm tra", "englishExample1": "We have an English test tomorrow.", "englishExample2": "She got ten points in the test.", "vietnameseExample1": "Ngày mai có bài kiểm tra tiếng Anh.", "vietnameseExample2": "Cô ấy được 10 điểm."},
+            {"english": "subject", "vietnamese": "môn học", "englishExample1": "My favorite subject is English.", "englishExample2": "What subjects do you have today?", "vietnameseExample1": "Môn học yêu thích là Tiếng Anh.", "vietnameseExample2": "Hôm nay bạn có những môn gì?"}
+        ]
+    },
+    {
+        "title": "Chủ đề 2 – Family & Friends (Gia đình và bạn bè)",
+        "words": [
+            {"english": "family", "vietnamese": "gia đình", "englishExample1": "My family has four people.", "englishExample2": "I love spending time with my family.", "vietnameseExample1": "Gia đình tôi có bốn người.", "vietnameseExample2": "Tôi thích dành thời gian với gia đình."},
+            {"english": "father", "vietnamese": "cha", "englishExample1": "My father works in a factory.", "englishExample2": "His father is tall and kind.", "vietnameseExample1": "Cha tôi làm trong nhà máy.", "vietnameseExample2": "Cha của cậu ấy cao và tốt bụng."},
+            {"english": "mother", "vietnamese": "mẹ", "englishExample1": "My mother is a teacher.", "englishExample2": "Her mother cooks very well.", "vietnameseExample1": "Mẹ tôi là giáo viên.", "vietnameseExample2": "Mẹ cô ấy nấu ăn rất ngon."},
+            {"english": "parents", "vietnamese": "cha mẹ", "englishExample1": "My parents are kind and helpful.", "englishExample2": "Parents always care about their children.", "vietnameseExample1": "Cha mẹ tôi rất tốt bụng.", "vietnameseExample2": "Cha mẹ luôn quan tâm con cái."},
+            {"english": "brother", "vietnamese": "anh / em trai", "englishExample1": "I have an older brother.", "englishExample2": "My brother plays football every day.", "vietnameseExample1": "Tôi có anh trai.", "vietnameseExample2": "Anh tôi chơi bóng hằng ngày."},
+            {"english": "sister", "vietnamese": "chị / em gái", "englishExample1": "My sister likes singing.", "englishExample2": "Her sister is a student, too.", "vietnameseExample1": "Em gái tôi thích hát.", "vietnameseExample2": "Em gái cô ấy cũng là học sinh."},
+            {"english": "cousin", "vietnamese": "anh/chị/em họ", "englishExample1": "My cousin lives in Hanoi.", "englishExample2": "I often visit my cousins in the summer.", "vietnameseExample1": "Anh họ tôi sống ở Hà Nội.", "vietnameseExample2": "Tôi thường thăm họ hàng vào mùa hè."},
+            {"english": "uncle", "vietnamese": "chú / cậu / bác", "englishExample1": "My uncle is a farmer.", "englishExample2": "I help my uncle on his farm.", "vietnameseExample1": "Chú tôi là nông dân.", "vietnameseExample2": "Tôi giúp chú làm nông."},
+            {"english": "aunt", "vietnamese": "cô / dì", "englishExample1": "My aunt is a doctor.", "englishExample2": "I visit my aunt every weekend.", "vietnameseExample1": "Cô tôi là bác sĩ.", "vietnameseExample2": "Tôi thăm cô mỗi cuối tuần."},
+            {"english": "grandparents", "vietnamese": "ông bà", "englishExample1": "I visit my grandparents every weekend.", "englishExample2": "My grandparents tell me interesting stories.", "vietnameseExample1": "Tôi thăm ông bà mỗi cuối tuần.", "vietnameseExample2": "Ông bà kể chuyện hay cho tôi nghe."},
+            {"english": "grandfather", "vietnamese": "ông", "englishExample1": "My grandfather is very old.", "englishExample2": "Her grandfather loves gardening.", "vietnameseExample1": "Ông tôi đã già.", "vietnameseExample2": "Ông cô ấy thích làm vườn."},
+            {"english": "grandmother", "vietnamese": "bà", "englishExample1": "My grandmother makes delicious cakes.", "englishExample2": "We love our grandmother very much.", "vietnameseExample1": "Bà tôi làm bánh rất ngon.", "vietnameseExample2": "Chúng tôi rất yêu bà."},
+            {"english": "friend", "vietnamese": "bạn", "englishExample1": "She is my best friend.", "englishExample2": "My friends are very kind.", "vietnameseExample1": "Cô ấy là bạn thân tôi.", "vietnameseExample2": "Bạn tôi rất tốt bụng."},
+            {"english": "best friend", "vietnamese": "bạn thân", "englishExample1": "Lan is my best friend.", "englishExample2": "My best friend always helps me.", "vietnameseExample1": "Lan là bạn thân của tôi.", "vietnameseExample2": "Bạn thân của tôi luôn giúp đỡ tôi."},
+            {"english": "classmate", "vietnamese": "bạn cùng lớp", "englishExample1": "My classmates are friendly.", "englishExample2": "Minh is my new classmate.", "vietnameseExample1": "Các bạn cùng lớp rất thân thiện.", "vietnameseExample2": "Minh là bạn cùng lớp mới của tôi."},
+            {"english": "neighbor", "vietnamese": "hàng xóm", "englishExample1": "Our neighbors are very nice.", "englishExample2": "I sometimes play with my neighbor’s dog.", "vietnameseExample1": "Hàng xóm của chúng tôi rất dễ thương.", "vietnameseExample2": "Tôi thỉnh thoảng chơi với chó của hàng xóm."}
+        ]
+    },
+    {
+        "title": "Chủ đề 3 – Appearance & Body Parts (Ngoại hình và các bộ phận cơ thể)",
+        "words": [
+            {"english": "tall", "vietnamese": "cao", "englishExample1": "My teacher is very tall.", "englishExample2": "His brother is tall and thin.", "vietnameseExample1": "Giáo viên của tôi rất cao.", "vietnameseExample2": "Anh trai cậu ấy cao và gầy."},
+            {"english": "short", "vietnamese": "thấp", "englishExample1": "My brother is short but strong.", "englishExample2": "She is shorter than her sister.", "vietnameseExample1": "Anh tôi thấp nhưng khỏe.", "vietnameseExample2": "Cô ấy thấp hơn em gái."},
+            {"english": "slim", "vietnamese": "thon thả, mảnh mai", "englishExample1": "She is slim and beautiful.", "englishExample2": "My sister wants to be slim.", "vietnameseExample1": "Cô ấy mảnh mai và xinh đẹp.", "vietnameseExample2": "Em gái tôi muốn trở nên thon thả."},
+            {"english": "thin", "vietnamese": "gầy", "englishExample1": "He looks thin because he doesn’t eat much.", "englishExample2": "The boy is thin but strong.", "vietnameseExample1": "Cậu ấy trông gầy vì ăn ít.", "vietnameseExample2": "Cậu bé gầy nhưng khỏe."},
+            {"english": "fat", "vietnamese": "béo", "englishExample1": "The cat is too fat.", "englishExample2": "Don’t eat too much or you’ll get fat.", "vietnameseExample1": "Con mèo quá béo.", "vietnameseExample2": "Đừng ăn nhiều kẻo béo."},
+            {"english": "big", "vietnamese": "to, lớn", "englishExample1": "He has big eyes.", "englishExample2": "The elephant has big ears.", "vietnameseExample1": "Cậu ấy có đôi mắt to.", "vietnameseExample2": "Con voi có đôi tai to."},
+            {"english": "small", "vietnamese": "nhỏ", "englishExample1": "She has a small nose.", "englishExample2": "This T-shirt is too small for me.", "vietnameseExample1": "Cô ấy có cái mũi nhỏ.", "vietnameseExample2": "Áo này quá nhỏ với tôi."},
+            {"english": "young", "vietnamese": "trẻ", "englishExample1": "My parents are young and active.", "englishExample2": "The young girl is very pretty.", "vietnameseExample1": "Cha mẹ tôi còn trẻ.", "vietnameseExample2": "Cô gái trẻ rất xinh."},
+            {"english": "old", "vietnamese": "già", "englishExample1": "My grandfather is very old.", "englishExample2": "That old man walks slowly.", "vietnameseExample1": "Ông tôi rất già.", "vietnameseExample2": "Ông cụ đó đi chậm."},
+            {"english": "beautiful", "vietnamese": "xinh đẹp", "englishExample1": "She looks beautiful today.", "englishExample2": "The flowers are beautiful.", "vietnameseExample1": "Hôm nay cô ấy trông đẹp.", "vietnameseExample2": "Những bông hoa thật đẹp."},
+            {"english": "pretty", "vietnamese": "dễ thương", "englishExample1": "Your sister is very pretty.", "englishExample2": "She has a pretty smile.", "vietnameseExample1": "Em gái bạn rất dễ thương.", "vietnameseExample2": "Cô ấy có nụ cười dễ thương."},
+            {"english": "handsome", "vietnamese": "đẹp trai", "englishExample1": "He is a handsome boy.", "englishExample2": "Our teacher is tall and handsome.", "vietnameseExample1": "Cậu ấy đẹp trai.", "vietnameseExample2": "Thầy giáo của chúng tôi cao và đẹp trai."},
+            {"english": "ugly", "vietnamese": "xấu xí", "englishExample1": "Don’t call anyone ugly.", "englishExample2": "That old house looks ugly.", "vietnameseExample1": "Đừng gọi ai là xấu xí.", "vietnameseExample2": "Ngôi nhà cũ đó trông xấu."},
+            {"english": "hair", "vietnamese": "tóc", "englishExample1": "Her hair is long and black.", "englishExample2": "I brush my hair every morning.", "vietnameseExample1": "Tóc cô ấy dài và đen.", "vietnameseExample2": "Tôi chải tóc mỗi sáng."}
+        ]
+    },
+    {
+        "title": "Chủ đề 4 – Daily Routines & Time (Thói quen hằng ngày & Thời gian)",
+        "words": [
+            {"english": "get up", "vietnamese": "thức dậy", "englishExample1": "I get up at six o’clock.", "englishExample2": "He gets up early every morning.", "vietnameseExample1": "Tôi thức dậy lúc 6 giờ.", "vietnameseExample2": "Cậu ấy dậy sớm mỗi sáng."},
+            {"english": "wake up", "vietnamese": "tỉnh giấc", "englishExample1": "She wakes up at 5:30.", "englishExample2": "I wake up when my alarm rings.", "vietnameseExample1": "Cô ấy tỉnh giấc lúc 5:30.", "vietnameseExample2": "Tôi tỉnh giấc khi đồng hồ reo."},
+            {"english": "brush teeth", "vietnamese": "đánh răng", "englishExample1": "I brush my teeth after breakfast.", "englishExample2": "Children should brush their teeth twice a day.", "vietnameseExample1": "Tôi đánh răng sau bữa sáng.", "vietnameseExample2": "Trẻ em nên đánh răng hai lần mỗi ngày."},
+            {"english": "wash face", "vietnamese": "rửa mặt", "englishExample1": "He washes his face with cold water.", "englishExample2": "I wash my face every morning.", "vietnameseExample1": "Cậu ấy rửa mặt bằng nước lạnh.", "vietnameseExample2": "Tôi rửa mặt mỗi sáng."},
+            {"english": "take a shower", "vietnamese": "tắm (vòi sen)", "englishExample1": "I take a shower before school.", "englishExample2": "She takes a shower every evening.", "vietnameseExample1": "Tôi tắm trước khi đi học.", "vietnameseExample2": "Cô ấy tắm mỗi tối."},
+            {"english": "have breakfast", "vietnamese": "ăn sáng", "englishExample1": "I have breakfast with my family.", "englishExample2": "What do you have for breakfast?", "vietnameseExample1": "Tôi ăn sáng cùng gia đình.", "vietnameseExample2": "Bạn ăn gì cho bữa sáng?"}
+        ]
+    },
+    {
+        "title": "Chủ đề 5 – Food & Drinks (Thức ăn và đồ uống)",
+        "words": [
+            {"english": "food", "vietnamese": "thức ăn", "englishExample1": "We need food to live.", "englishExample2": "Fast food is not healthy.", "vietnameseExample1": "Chúng ta cần thức ăn để sống.", "vietnameseExample2": "Đồ ăn nhanh không tốt cho sức khỏe."},
+            {"english": "drink", "vietnamese": "đồ uống / uống", "englishExample1": "What would you like to drink?", "englishExample2": "I drink milk every morning.", "vietnameseExample1": "Bạn muốn uống gì?", "vietnameseExample2": "Tôi uống sữa mỗi sáng."},
+            {"english": "breakfast", "vietnamese": "bữa sáng", "englishExample1": "I have breakfast at 6:30.", "englishExample2": "Breakfast is the most important meal.", "vietnameseExample1": "Tôi ăn sáng lúc 6:30.", "vietnameseExample2": "Bữa sáng là bữa ăn quan trọng nhất."},
+            {"english": "lunch", "vietnamese": "bữa trưa", "englishExample1": "We have lunch at school.", "englishExample2": "What do you have for lunch?", "vietnameseExample1": "Chúng tôi ăn trưa ở trường.", "vietnameseExample2": "Bạn ăn gì cho bữa trưa?"},
+            {"english": "dinner", "vietnamese": "bữa tối", "englishExample1": "My family has dinner at 7 p.m.", "englishExample2": "We often eat rice for dinner.", "vietnameseExample1": "Gia đình tôi ăn tối lúc 7 giờ.", "vietnameseExample2": "Chúng tôi thường ăn cơm vào bữa tối."}
+        ]
+    },
+    {
+        "title": "Chủ đề 6 – Weather & Seasons (Thời tiết và các mùa)",
+        "words": [
+            {"english": "weather", "vietnamese": "thời tiết", "englishExample1": "What’s the weather like today?", "englishExample2": "The weather is nice and cool.", "vietnameseExample1": "Thời tiết hôm nay thế nào?", "vietnameseExample2": "Thời tiết thật dễ chịu và mát."},
+            {"english": "sunny", "vietnamese": "có nắng", "englishExample1": "It’s sunny today.", "englishExample2": "We go to the park on sunny days.", "vietnameseExample1": "Hôm nay trời nắng.", "vietnameseExample2": "Chúng tôi đi công viên vào ngày nắng."},
+            {"english": "rainy", "vietnamese": "có mưa", "englishExample1": "It’s rainy and cold.", "englishExample2": "Don’t forget your umbrella; it’s rainy outside.", "vietnameseExample1": "Trời có mưa và lạnh.", "vietnameseExample2": "Đừng quên ô, bên ngoài đang mưa."},
+            {"english": "cloudy", "vietnamese": "có mây", "englishExample1": "The sky is cloudy.", "englishExample2": "It looks cloudy this morning.", "vietnameseExample1": "Bầu trời nhiều mây.", "vietnameseExample2": "Sáng nay trời có vẻ âm u."},
+            {"english": "windy", "vietnamese": "có gió", "englishExample1": "It’s windy today.", "englishExample2": "A windy day is good for flying kites.", "vietnameseExample1": "Hôm nay trời có gió.", "vietnameseExample2": "Ngày có gió thì thả diều rất vui."},
+            {"english": "stormy", "vietnamese": "có bão", "englishExample1": "It’s stormy in summer.", "englishExample2": "Don’t go out on a stormy night.", "vietnameseExample1": "Mùa hè có bão.", "vietnameseExample2": "Đừng ra ngoài vào đêm có bão."}
+        ]
+    },
+    {
+        "title": "Chủ đề 7 – Animals (Động vật)",
+        "words": [
+            {"english": "animal", "vietnamese": "động vật", "englishExample1": "I like animals.", "englishExample2": "Animals live everywhere.", "vietnameseExample1": "Tôi thích động vật.", "vietnameseExample2": "Động vật sống khắp nơi."},
+            {"english": "pet", "vietnamese": "thú cưng", "englishExample1": "I have a pet dog.", "englishExample2": "What pet do you have?", "vietnameseExample1": "Tôi có một chú chó cưng.", "vietnameseExample2": "Bạn có thú cưng nào?"},
+            {"english": "dog", "vietnamese": "chó", "englishExample1": "The dog is very friendly.", "englishExample2": "My dog can run fast.", "vietnameseExample1": "Con chó rất thân thiện.", "vietnameseExample2": "Con chó của tôi chạy nhanh."},
+            {"english": "cat", "vietnamese": "mèo", "englishExample1": "I love my cat.", "englishExample2": "The cat is sleeping on the chair.", "vietnameseExample1": "Tôi yêu con mèo của tôi.", "vietnameseExample2": "Con mèo đang ngủ trên ghế."},
+            {"english": "bird", "vietnamese": "chim", "englishExample1": "The bird can sing.", "englishExample2": "There are many birds in the tree.", "vietnameseExample1": "Con chim biết hót.", "vietnameseExample2": "Có nhiều chim trên cây."},
+            {"english": "fish", "vietnamese": "cá", "englishExample1": "Fish live in water.", "englishExample2": "I have two goldfish.", "vietnameseExample1": "Cá sống dưới nước.", "vietnameseExample2": "Tôi có hai con cá vàng."}
+        ]
+    },
+    {
+        "title": "Chủ đề 8 – My House & Rooms (Ngôi nhà và các phòng)",
+        "words": [
+            {"english": "house", "vietnamese": "ngôi nhà", "englishExample1": "My house is big and nice.", "englishExample2": "We have a small house in the countryside.", "vietnameseExample1": "Ngôi nhà của tôi to và đẹp.", "vietnameseExample2": "Chúng tôi có ngôi nhà nhỏ ở nông thôn."},
+            {"english": "home", "vietnamese": "nhà, tổ ấm", "englishExample1": "I love my home.", "englishExample2": "She stays at home at the weekend.", "vietnameseExample1": "Tôi yêu ngôi nhà của mình.", "vietnameseExample2": "Cô ấy ở nhà vào cuối tuần."},
+            {"english": "room", "vietnamese": "phòng", "englishExample1": "There are five rooms in my house.", "englishExample2": "This room is very bright.", "vietnameseExample1": "Trong nhà tôi có năm phòng.", "vietnameseExample2": "Phòng này rất sáng."},
+            {"english": "living room", "vietnamese": "phòng khách", "englishExample1": "We watch TV in the living room.", "englishExample2": "The living room is next to the kitchen.", "vietnameseExample1": "Chúng tôi xem TV ở phòng khách.", "vietnameseExample2": "Phòng khách ở cạnh bếp."},
+            {"english": "bedroom", "vietnamese": "phòng ngủ", "englishExample1": "My bedroom is small but tidy.", "englishExample2": "There’s a bed in my bedroom.", "vietnameseExample1": "Phòng ngủ của tôi nhỏ nhưng gọn.", "vietnameseExample2": "Có một chiếc giường trong phòng ngủ."}
+        ]
+    },
+    {
+        "title": "Chủ đề 9 – Places in Town (Địa điểm trong thị trấn / thành phố)",
+        "words": [
+            {"english": "town", "vietnamese": "thị trấn", "englishExample1": "My town is small but clean.", "englishExample2": "We live in a quiet town.", "vietnameseExample1": "Thị trấn của tôi nhỏ nhưng sạch.", "vietnameseExample2": "Chúng tôi sống ở một thị trấn yên tĩnh."},
+            {"english": "city", "vietnamese": "thành phố", "englishExample1": "Hanoi is a big city.", "englishExample2": "The city is very crowded.", "vietnameseExample1": "Hà Nội là một thành phố lớn.", "vietnameseExample2": "Thành phố rất đông đúc."},
+            {"english": "village", "vietnamese": "làng", "englishExample1": "My grandparents live in a village.", "englishExample2": "The village is peaceful.", "vietnameseExample1": "Ông bà tôi sống ở một ngôi làng.", "vietnameseExample2": "Ngôi làng yên bình."},
+            {"english": "street", "vietnamese": "con đường", "englishExample1": "Our school is on Nguyen Trai Street.", "englishExample2": "The street is full of cars.", "vietnameseExample1": "Trường tôi ở đường Nguyễn Trãi.", "vietnameseExample2": "Con đường đầy xe cộ."},
+            {"english": "road", "vietnamese": "đường", "englishExample1": "Don’t play on the road.", "englishExample2": "This road leads to the city center.", "vietnameseExample1": "Đừng chơi ngoài đường.", "vietnameseExample2": "Con đường này dẫn đến trung tâm."}
+        ]
+    },
+    {
+        "title": "Chủ đề 10 – Transportation (Phương tiện giao thông)",
+        "words": [
+            {"english": "transport / transportation", "vietnamese": "phương tiện giao thông", "englishExample1": "Transportation is very important.", "englishExample2": "Public transport saves energy.", "vietnameseExample1": "Giao thông rất quan trọng.", "vietnameseExample2": "Giao thông công cộng tiết kiệm năng lượng."},
+            {"english": "vehicle", "vietnamese": "xe cộ", "englishExample1": "There are many vehicles on the road.", "englishExample2": "Cars and bikes are vehicles.", "vietnameseExample1": "Có nhiều xe cộ trên đường.", "vietnameseExample2": "Ô tô và xe đạp là phương tiện."},
+            {"english": "car", "vietnamese": "ô tô", "englishExample1": "My father drives a car to work.", "englishExample2": "The car is very fast.", "vietnameseExample1": "Bố tôi lái ô tô đi làm.", "vietnameseExample2": "Chiếc xe rất nhanh."},
+            {"english": "bus", "vietnamese": "xe buýt", "englishExample1": "I go to school by bus.", "englishExample2": "The bus stop is near my house.", "vietnameseExample1": "Tôi đi học bằng xe buýt.", "vietnameseExample2": "Trạm xe buýt gần nhà tôi."},
+            {"english": "bike / bicycle", "vietnamese": "xe đạp", "englishExample1": "I ride my bike to school.", "englishExample2": "She has a new bicycle.", "vietnameseExample1": "Tôi đi học bằng xe đạp.", "vietnameseExample2": "Cô ấy có xe đạp mới."}
+        ]
+    },
+    {
+        "title": "Chủ đề 11 – Sports & Hobbies (Thể thao và Sở thích)",
+        "words": [
+            {"english": "sport", "vietnamese": "thể thao", "englishExample1": "I like sports.", "englishExample2": "Playing sports is good for health.", "vietnameseExample1": "Tôi thích thể thao.", "vietnameseExample2": "Chơi thể thao tốt cho sức khỏe."},
+            {"english": "exercise", "vietnamese": "bài tập thể dục", "englishExample1": "I do morning exercise every day.", "englishExample2": "Exercise keeps you healthy.", "vietnameseExample1": "Tôi tập thể dục buổi sáng mỗi ngày.", "vietnameseExample2": "Tập thể dục giúp bạn khỏe mạnh."},
+            {"english": "play", "vietnamese": "chơi", "englishExample1": "I play football after school.", "englishExample2": "She plays badminton with her friends.", "vietnameseExample1": "Tôi chơi bóng đá sau giờ học.", "vietnameseExample2": "Cô ấy chơi cầu lông với bạn."},
+            {"english": "go", "vietnamese": "đi (với hoạt động)", "englishExample1": "I go swimming on weekends.", "englishExample2": "We go cycling in the park.", "vietnameseExample1": "Tôi đi bơi vào cuối tuần.", "vietnameseExample2": "Chúng tôi đi đạp xe trong công viên."},
+            {"english": "do", "vietnamese": "tập (với hoạt động)", "englishExample1": "I do karate every Friday.", "englishExample2": "My sister does yoga in the morning.", "vietnameseExample1": "Tôi tập võ karate vào thứ Sáu.", "vietnameseExample2": "Chị tôi tập yoga vào buổi sáng."}
+        ]
+    },
+    {
+        "title": "Chủ đề 12 – Daily Activities & Free Time (Hoạt động hàng ngày & thời gian rảnh)",
+        "words": [
+            {"english": "daily routine", "vietnamese": "thói quen hàng ngày", "englishExample1": "My daily routine starts at 6 a.m.", "englishExample2": "Everyone has a daily routine.", "vietnameseExample1": "Thói quen hàng ngày của tôi bắt đầu lúc 6 giờ sáng.", "vietnameseExample2": "Ai cũng có thói quen hàng ngày."},
+            {"english": "get up", "vietnamese": "thức dậy", "englishExample1": "I get up at six o’clock.", "englishExample2": "She gets up early every day.", "vietnameseExample1": "Tôi thức dậy lúc sáu giờ.", "vietnameseExample2": "Cô ấy dậy sớm mỗi ngày."},
+            {"english": "wake up", "vietnamese": "tỉnh dậy", "englishExample1": "I wake up before my alarm rings.", "englishExample2": "He wakes up late on Sundays.", "vietnameseExample1": "Tôi tỉnh dậy trước khi chuông reo.", "vietnameseExample2": "Cậu ấy dậy muộn vào Chủ nhật."},
+            {"english": "wash face", "vietnamese": "rửa mặt", "englishExample1": "I wash my face with water.", "englishExample2": "She washes her face after waking up.", "vietnameseExample1": "Tôi rửa mặt bằng nước.", "vietnameseExample2": "Cô ấy rửa mặt sau khi tỉnh dậy."},
+            {"english": "brush teeth", "vietnamese": "đánh răng", "englishExample1": "I brush my teeth twice a day.", "englishExample2": "Don’t forget to brush your teeth.", "vietnameseExample1": "Tôi đánh răng hai lần một ngày.", "vietnameseExample2": "Đừng quên đánh răng."}
+        ]
+    },
+    {
+        "title": "Chủ đề 13 – School Life (Cuộc sống học đường)",
+        "words": [
+            {"english": "school", "vietnamese": "trường học", "englishExample1": "Our school is big and beautiful.", "englishExample2": "I go to school every day.", "vietnameseExample1": "Trường của chúng tôi lớn và đẹp.", "vietnameseExample2": "Tôi đi học mỗi ngày."},
+            {"english": "classroom", "vietnamese": "lớp học", "englishExample1": "Our classroom is clean.", "englishExample2": "There are 35 students in my classroom.", "vietnameseExample1": "Lớp học của chúng tôi sạch sẽ.", "vietnameseExample2": "Có 35 học sinh trong lớp."},
+            {"english": "blackboard / board", "vietnamese": "bảng", "englishExample1": "The teacher writes on the blackboard.", "englishExample2": "Please clean the board.", "vietnameseExample1": "Giáo viên viết lên bảng.", "vietnameseExample2": "Làm ơn lau bảng."},
+            {"english": "chalk", "vietnamese": "phấn", "englishExample1": "The teacher uses chalk to write.", "englishExample2": "There’s no chalk in the box.", "vietnameseExample1": "Giáo viên dùng phấn để viết.", "vietnameseExample2": "Hộp không còn phấn."}
+        ]
+    },
+    {
+        "title": "Chủ đề 14 – Subjects & Learning (Các môn học và việc học tập)",
+        "words": [
+            {"english": "subject", "vietnamese": "môn học", "englishExample1": "What’s your favorite subject?", "englishExample2": "We study many subjects at school.", "vietnameseExample1": "Môn học yêu thích của bạn là gì?", "vietnameseExample2": "Chúng tôi học nhiều môn ở trường."},
+            {"english": "lesson", "vietnamese": "tiết học", "englishExample1": "The English lesson starts at 8 o’clock.", "englishExample2": "We have four lessons in the morning.", "vietnameseExample1": "Tiết học tiếng Anh bắt đầu lúc 8 giờ.", "vietnameseExample2": "Buổi sáng chúng tôi có bốn tiết."},
+            {"english": "timetable", "vietnamese": "thời khóa biểu", "englishExample1": "My timetable is very full.", "englishExample2": "Check your timetable before class.", "vietnameseExample1": "Thời khóa biểu của tôi rất kín.", "vietnameseExample2": "Kiểm tra thời khóa biểu trước giờ học."},
+            {"english": "homework", "vietnamese": "bài tập về nhà", "englishExample1": "I always do my homework after dinner.", "englishExample2": "Don’t forget your homework!", "vietnameseExample1": "Tôi luôn làm bài tập sau bữa tối.", "vietnameseExample2": "Đừng quên bài tập về nhà!"}
+        ]
+    },
+    {
+        "title": "Chủ đề 15 – Classroom Objects & School Supplies (Đồ dùng học tập & vật trong lớp học)",
+        "words": [
+            {"english": "classroom", "vietnamese": "lớp học", "englishExample1": "The classroom is big and clean.", "englishExample2": "There are many desks in our classroom.", "vietnameseExample1": "Lớp học rộng và sạch.", "vietnameseExample2": "Có nhiều bàn trong lớp học."},
+            {"english": "desk", "vietnamese": "bàn học", "englishExample1": "I sit at my desk.", "englishExample2": "There’s a pen on my desk.", "vietnameseExample1": "Tôi ngồi ở bàn học của mình.", "vietnameseExample2": "Có cây bút trên bàn."},
+            {"english": "chair", "vietnamese": "ghế", "englishExample1": "My chair is near the window.", "englishExample2": "There are thirty chairs in the room.", "vietnameseExample1": "Ghế của tôi ở gần cửa sổ.", "vietnameseExample2": "Có 30 cái ghế trong phòng."},
+            {"english": "table", "vietnamese": "bàn", "englishExample1": "The teacher’s table is in front of the class.", "englishExample2": "Put the books on the table.", "vietnameseExample1": "Bàn của cô ở trước lớp.", "vietnameseExample2": "Đặt sách lên bàn."}
+        ]
+    }
+];
+
+// ... (rest of the file is unchanged) ...
+// Components from components/
+const SpeakerIcon = () => React.createElement(
+  "svg",
+  {
+    xmlns: "http://www.w3.org/2000/svg",
+    className: "h-8 w-8",
+    fill: "none",
+    viewBox: "0 0 24 24",
+    stroke: "currentColor"
+  },
+  React.createElement("path", {
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    strokeWidth: 2,
+    d: "M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+  })
+);
+
+const TrophyIcon = () => React.createElement(
+  "svg",
+  {
+    xmlns: "http://www.w3.org/2000/svg",
+    className: "h-16 w-16",
+    viewBox: "0 0 20 20",
+    fill: "currentColor"
+  },
+  React.createElement("path", { d: "M17.92,3.39a1,1,0,0,0-1.33-.22L12,6.1,7.41,3.17a1,1,0,0,0-1.33.22L2.1,9.45a1,1,0,0,0,0,1.1l2.1,6.28a1,1,0,0,0,1,.67H14.8a1,1,0,0,0,1-.67l2.1-6.28a1,1,0,0,0,0-1.1ZM13,16H7L5.5,12,3,9.4,4.5,7.4l3,2.25a1,1,0,0,0,1,0l3-2.25L13,9.4,14.5,12Z" })
+);
+
+const WrongAnswersModal = ({ isOpen, onClose, mistakes, onPracticeMistakes }) => {
+  if (!isOpen) {
+    return null;
+  }
+
+  return React.createElement(
+    "div",
+    {
+      className: "fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50",
+      onClick: onClose
+    },
+    React.createElement(
+      "div",
+      {
+        className: "bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col",
+        onClick: (e) => e.stopPropagation()
+      },
+      React.createElement(
+        "div",
+        { className: "p-6 border-b border-gray-200 sticky top-0 bg-white" },
+        React.createElement("h2", { className: "text-2xl font-bold text-gray-800" }, "Các từ cần xem lại"),
+        React.createElement("p", { className: "text-gray-500" }, "Đây là những từ bạn đã làm sai.")
+      ),
+      React.createElement(
+        "div",
+        { className: "p-6 overflow-y-auto" },
+        mistakes.length === 0
+          ? React.createElement("p", { className: "text-center text-gray-500 py-8" }, "Chưa có lỗi sai nào. Làm tốt lắm!")
+          : React.createElement(
+              "ul",
+              { className: "divide-y divide-gray-200" },
+              ...mistakes.map((mistake, index) =>
+                React.createElement(
+                  "li",
+                  {
+                    key: index,
+                    className: "py-4 flex flex-col items-start select-none",
+                    onContextMenu: (e) => e.preventDefault(),
+                  },
+                  React.createElement(
+                    "div",
+                    {
+                      key: "word",
+                      className: "flex justify-between items-center w-full",
+                    },
+                    React.createElement(
+                      "span",
+                      { className: "text-lg text-gray-800 font-medium" },
+                      mistake.word.english
+                    ),
+                    React.createElement(
+                      "span",
+                      { className: "text-gray-600" },
+                      mistake.word.vietnamese
+                    )
+                  ),
+                  mistake.sentenceErrorCount > 0
+                    ? React.createElement(
+                        "p",
+                        {
+                          key: "sentence-error",
+                          className: "text-sm font-semibold text-red-600 mt-1",
+                        },
+                        `Lỗi sai câu: ${mistake.sentenceErrorCount}`
+                      )
+                    : null,
+                  mistake.word.englishExample1
+                    ? React.createElement(
+                        "p",
+                        {
+                          key: "example",
+                          className: "text-xl text-gray-500 mt-1 italic",
+                        },
+                        `VD: "${mistake.word.englishExample1}${mistake.word.englishExample2 ? ` / ${mistake.word.englishExample2}` : ''}"`
+                      )
+                    : null
+                )
+              )
+            )
+      ),
+      React.createElement(
+        "div",
+        { className: "p-6 border-t border-gray-200 sticky bottom-0 bg-white space-y-2" },
+         React.createElement(
+          "button",
+          {
+            onClick: onPracticeMistakes,
+            disabled: mistakes.length === 0,
+            className: "w-full p-3 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+          },
+          `Luyện tập các lỗi sai (${mistakes.length})`
+        ),
+        React.createElement(
+          "button",
+          {
+            onClick: onClose,
+            className: "w-full p-3 bg-sky-500 text-white font-bold rounded-lg hover:bg-sky-600 transition-colors"
+          },
+          "Đóng"
+        )
+      )
+    )
+  );
+};
+
+const GameSummary = ({ score, total, onShowWrongAnswers, onNextTopic, onReturnToMenu, onPracticeMistakes, mistakesCount }) => {
+  return React.createElement(
+    "div",
+    { className: "flex flex-col items-center justify-center min-h-screen p-4" },
+    React.createElement(
+      "div",
+      { className: "w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 text-center border border-gray-200" },
+      React.createElement(
+        "div", { className: "flex justify-center text-sky-400 mb-4" },
+        React.createElement(TrophyIcon)
+      ),
+      React.createElement("h1", { className: "text-3xl font-bold text-sky-600 mb-2" }, "Hoàn thành chủ đề!"),
+      React.createElement("p", { className: "text-gray-600 mb-6" }, "Làm tốt lắm! Đây là kết quả của bạn."),
+      React.createElement(
+        "div", { className: "my-8" },
+        React.createElement("p", { className: "text-lg text-gray-800" }, "Điểm của bạn"),
+        React.createElement("p", { className: "text-6xl font-bold text-green-500" }, score, React.createElement("span", { className: "text-3xl text-gray-500" }, `/${total}`))
+      ),
+      React.createElement(
+        "div", { className: "space-y-3" },
+        React.createElement("button", { onClick: onNextTopic, className: "w-full p-4 bg-sky-500 text-white font-bold rounded-lg hover:bg-sky-600 transition-transform hover:scale-105 transform duration-200" }, "Chủ đề tiếp theo"),
+        mistakesCount > 0 ? React.createElement("button", { onClick: onPracticeMistakes, className: "w-full p-4 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition-transform hover:scale-105 transform duration-200" }, `Luyện tập lại ${mistakesCount} lỗi sai`) : null,
+        React.createElement("button", { onClick: onShowWrongAnswers, className: "w-full p-4 bg-gray-200 text-gray-800 font-bold rounded-lg hover:bg-gray-300 transition-transform hover:scale-105 transform duration-200" }, "Xem lại lỗi sai"),
+        React.createElement("button", { onClick: onReturnToMenu, className: "w-full p-3 bg-transparent text-gray-600 font-bold rounded-lg hover:bg-gray-100 transition-colors" }, "Quay về menu chính")
+      )
+    )
+  );
+};
+
+const Game = ({ topic, onReturnToMenu, onNextTopic, onStartPractice }) => {
+  const words = useMemo(() => [...topic.words].sort(() => 0.5 - Math.random()), [topic]);
+  
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [userInput, setUserInput] = useState('');
+  const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(1);
+  const [wrongAnswers, setWrongAnswers] = useState([]);
+  const [isFinished, setIsFinished] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const [isHintVisible, setIsHintVisible] = useState(false);
+  const [showWrongAnswersModal, setShowWrongAnswersModal] = useState(false);
+  const [feedback, setFeedback] = useState(null);
+  const [gameStage, setGameStage] = useState('word'); // 'word', 'sentence1', 'sentence2'
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+  const inputRef = useRef(null);
+  const currentWord = words[currentWordIndex];
+
+  const speak = useCallback((text, onEndCallback = null) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      if (onEndCallback && typeof onEndCallback === 'function') {
+        utterance.onend = onEndCallback;
+      }
+      window.speechSynthesis.speak(utterance);
+    } else if (onEndCallback && typeof onEndCallback === 'function') {
+      onEndCallback();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (currentWord) {
+      const textToSpeak = gameStage === 'word' ? currentWord.english
+                          : gameStage === 'sentence1' ? (currentWord.englishExample1 || '')
+                          : (currentWord.englishExample2 || '');
+
+      if (textToSpeak) {
+        setIsPreviewVisible(true);
+        const playSecondTimeAndHide = () => {
+          speak(textToSpeak, () => {
+            setIsPreviewVisible(false);
+            if (inputRef.current) inputRef.current.focus();
+          });
+        };
+        speak(textToSpeak, playSecondTimeAndHide);
+      } else {
+        setIsPreviewVisible(false);
+        if (inputRef.current) inputRef.current.focus();
+      }
+    }
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [currentWord, gameStage, speak]);
+
+  useEffect(() => {
+      if (feedback) {
+          const timer = setTimeout(() => setFeedback(null), 2500);
+          return () => clearTimeout(timer);
+      }
+  }, [feedback]);
+
+  const normalizeSentence = (str) => str ? str.trim().toLowerCase().replace(/[.,!?]/g, '').replace(/[\u2018\u2019']/g, "'") : '';
+
+  const handleNextWord = useCallback(() => {
+    if (currentWordIndex < words.length - 1) {
+      setCurrentWordIndex(prev => prev + 1);
+      setUserInput('');
+      setAttempts(1);
+      setShowHint(false);
+      setFeedback(null);
+      setGameStage('word');
+    } else {
+      setIsFinished(true);
+    }
+  }, [currentWordIndex, words.length]);
+
+  const handleTransitionToSentence2 = useCallback(() => {
+    if (currentWord.englishExample2) {
+        setGameStage('sentence2');
+        setUserInput('');
+        setFeedback(null);
+        setAttempts(1);
+        setShowHint(false);
+    } else {
+        handleNextWord();
+    }
+  }, [currentWord, handleNextWord]);
+  
+  const handleTransitionToSentence1 = useCallback(() => {
+    if (currentWord.englishExample1) {
+        setGameStage('sentence1');
+        setUserInput('');
+        setFeedback(null);
+        setAttempts(1);
+        setShowHint(false);
+    } else {
+        handleNextWord();
+    }
+  }, [currentWord, handleNextWord]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!userInput.trim() || feedback) return;
+
+    const commonIncorrectLogic = (isSentence = false) => {
+      setFeedback({type: 'incorrect', message: 'Chưa đúng, thử lại nhé!'});
+      if (attempts === 1 && !isSentence) {
+          setWrongAnswers(prev => {
+              if (!prev.some(m => m.word.english === currentWord.english)) {
+                  return [...prev, { word: currentWord, sentenceErrorCount: 0 }];
+              }
+              return prev;
+          });
+      } else if (isSentence) {
+          setWrongAnswers(prev => {
+              const existingMistakeIndex = prev.findIndex(m => m.word.english === currentWord.english);
+              if (existingMistakeIndex > -1) {
+                  const updatedMistakes = [...prev];
+                  updatedMistakes[existingMistakeIndex].sentenceErrorCount += 1;
+                  return updatedMistakes;
+              } else {
+                  return [...prev, { word: currentWord, sentenceErrorCount: 1 }];
+              }
+          });
+      }
+      setAttempts(prev => prev + 1);
+      if (attempts >= 1) {
+        setShowHint(true);
+      }
+    };
+
+    if (gameStage === 'word') {
+        const isCorrect = normalizeSentence(userInput) === normalizeSentence(currentWord.english);
+        if (isCorrect) {
+          setFeedback({type: 'correct', message: 'Chính xác!', example: `${currentWord.englishExample1}${currentWord.englishExample2 ? ` / ${currentWord.englishExample2}` : ''}` });
+          if (attempts === 1) {
+            setScore(prev => prev + 1);
+          }
+          setTimeout(handleTransitionToSentence1, 2500);
+        } else {
+          commonIncorrectLogic(false);
+        }
+    } else if (gameStage === 'sentence1') {
+        if (!currentWord.englishExample1) return;
+        const isCorrect = normalizeSentence(userInput) === normalizeSentence(currentWord.englishExample1);
+        if (isCorrect) {
+            setFeedback({ type: 'correct', message: 'Tuyệt vời!' });
+            setTimeout(handleTransitionToSentence2, 1000);
+        } else {
+            commonIncorrectLogic(true);
+        }
+    } else { // gameStage === 'sentence2'
+        if (!currentWord.englishExample2) return;
+        const isCorrect = normalizeSentence(userInput) === normalizeSentence(currentWord.englishExample2);
+        if (isCorrect) {
+            setFeedback({ type: 'correct', message: 'Rất tốt!' });
+            setTimeout(handleNextWord, 1000);
+        } else {
+            commonIncorrectLogic(true);
+        }
+    }
+  };
+
+  const handleListenAgain = useCallback(() => {
+      const textToSpeak = gameStage === 'word' ? currentWord.english 
+                        : gameStage === 'sentence1' ? (currentWord.englishExample1 || '')
+                        : (currentWord.englishExample2 || '');
+      if (textToSpeak) {
+          setIsPreviewVisible(true);
+          speak(textToSpeak, () => {
+              setIsPreviewVisible(false);
+              if (inputRef.current) inputRef.current.focus();
+          });
+      }
+  }, [currentWord, gameStage, speak]);
+
+  const handlePracticeMistakes = () => {
+    if (wrongAnswers.length > 0) {
+      setShowWrongAnswersModal(false);
+      onStartPractice(wrongAnswers);
+    }
+  };
+
+  if (isFinished) {
+    return React.createElement(GameSummary, { 
+      score, 
+      total: words.length, 
+      onShowWrongAnswers: () => setShowWrongAnswersModal(true), 
+      onNextTopic, 
+      onReturnToMenu,
+      onPracticeMistakes: handlePracticeMistakes,
+      mistakesCount: wrongAnswers.length 
+    });
+  }
+
+  if (!currentWord) {
+    return React.createElement("div", { className: "text-center p-8" }, "Đang tải chủ đề...");
+  }
+  
+  const getInputBorderColor = () => {
+      if (!feedback) return 'border-gray-300 focus:border-sky-500';
+      return feedback.type === 'correct' ? 'border-green-500 animate-pulse' : 'border-red-500 animate-pulse';
+  }
+
+  const progressPercentage = ((currentWordIndex) / words.length) * 100;
+
+  const renderPreview = () => {
+      if (gameStage === 'word') {
+          return React.createElement(React.Fragment, null,
+              React.createElement("p", { className: "text-4xl md:text-5xl font-semibold text-sky-700 mb-2 animate-pulse" }, currentWord.english),
+              React.createElement("p", { className: "text-lg text-gray-500" }, `(${currentWord.vietnamese})`)
+          );
+      }
+      const example = gameStage === 'sentence1' ? currentWord.englishExample1 : currentWord.englishExample2;
+      const vietnameseExample = gameStage === 'sentence1' ? currentWord.vietnameseExample1 : currentWord.vietnameseExample2;
+      return React.createElement(React.Fragment, null,
+          React.createElement("p", { className: "text-2xl text-sky-700 mb-2 italic animate-pulse" }, `"${example}"`),
+          React.createElement("p", { className: "text-lg text-gray-500" }, `(${vietnameseExample})`)
+      );
+  };
+
+  const renderChallenge = () => {
+      if (gameStage === 'word') {
+          return React.createElement(React.Fragment, null,
+              React.createElement("p", { className: "text-4xl md:text-5xl font-semibold text-gray-900 mb-2" }, currentWord.vietnamese)
+          );
+      }
+      const vietnameseExample = gameStage === 'sentence1' ? currentWord.vietnameseExample1 : currentWord.vietnameseExample2;
+      return React.createElement(React.Fragment, null,
+          React.createElement("p", { className: "text-2xl font-semibold text-gray-800 mb-2" }, `Nghe và nhập câu ${gameStage === 'sentence1' ? 1 : 2}:`),
+          vietnameseExample ? React.createElement("p", { className: "text-2xl text-gray-700 mb-2 italic" }, `"${vietnameseExample}"`) : null
+      );
+  };
+  
+  const getHint = () => {
+      if (gameStage === 'word') return currentWord.english;
+      if (gameStage === 'sentence1') return currentWord.englishExample1;
+      return currentWord.englishExample2;
+  }
+
+  return React.createElement(
+    "div", { className: "flex flex-col items-center justify-center min-h-screen p-4" },
+    React.createElement(
+      "div", { className: "w-full max-w-xl bg-white rounded-2xl shadow-2xl p-6 md:p-8 relative overflow-hidden border border-gray-200" },
+      React.createElement("div", { className: "w-full bg-gray-200 rounded-full h-2.5 absolute top-0 left-0" },
+        React.createElement("div", { className: "bg-sky-400 h-2.5 rounded-full", style: { width: `${progressPercentage}%`, transition: 'width 0.5s ease-in-out' } })
+      ),
+      React.createElement("div", { className: "absolute top-4 left-4" },
+        React.createElement("button", { onClick: onReturnToMenu, className: "text-gray-500 hover:text-sky-600 transition-colors text-sm" }, "← Đổi chủ đề")
+      ),
+      React.createElement("div", { className: "absolute top-4 right-4" },
+        React.createElement("button", { onClick: () => setShowWrongAnswersModal(true), className: "text-gray-500 hover:text-sky-600 transition-colors text-sm" }, `Lỗi sai (${wrongAnswers.length})`)
+      ),
+      React.createElement("div", { className: "text-center mt-12" },
+        React.createElement("h2", { className: "text-2xl font-bold text-sky-600 mb-2" }, topic.title),
+        React.createElement("p", { className: "text-gray-500" }, `Từ ${currentWordIndex + 1} trên ${words.length} • Điểm: ${score}`)
+      ),
+      React.createElement("div", { className: "my-8 text-center min-h-[160px] flex flex-col justify-center items-center select-none", onContextMenu: (e) => e.preventDefault() },
+        isPreviewVisible ? renderPreview() : renderChallenge(),
+        React.createElement("button", { onClick: handleListenAgain, className: "text-gray-500 hover:text-sky-500 transition-colors p-2 rounded-full active:scale-90 transform mt-2" },
+          React.createElement(SpeakerIcon)
+        )
+      ),
+      React.createElement("form", { onSubmit: handleSubmit, className: "space-y-4" },
+        React.createElement("input", {
+          ref: inputRef,
+          type: "text",
+          value: userInput,
+          onChange: (e) => setUserInput(e.target.value),
+          placeholder: gameStage === 'word' ? "Nhập từ tiếng Anh..." : `Nhập câu ${gameStage === 'sentence1' ? 1 : 2}...`,
+          className: `w-full p-4 text-center text-lg bg-gray-100 border-2 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-200 ${getInputBorderColor()}`,
+          autoCapitalize: "none",
+          autoComplete: "off",
+          autoCorrect: "off"
+        }),
+        React.createElement("button", { type: "submit", className: "w-full p-4 bg-sky-500 text-white font-bold rounded-lg hover:bg-sky-600 transition-transform hover:scale-105 transform duration-200 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:scale-100" }, "Nộp bài")
+      ),
+      React.createElement("div", { className: "mt-4 min-h-[48px] flex items-center justify-center" },
+        (showHint && !feedback) ? React.createElement("div", { className: "relative" },
+          React.createElement("button", {
+            onMouseDown: () => setIsHintVisible(true),
+            onMouseUp: () => setIsHintVisible(false),
+            onTouchStart: () => setIsHintVisible(true),
+            onTouchEnd: () => setIsHintVisible(false),
+            className: "px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
+          }, "Giữ để xem gợi ý"),
+          isHintVisible ? React.createElement("div", { className: "absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-white p-3 rounded-lg border border-gray-300 shadow-lg z-10 select-none" },
+            React.createElement("p", { className: "text-sky-700 font-mono whitespace-nowrap" }, getHint())
+          ) : null
+        ) : null,
+        feedback
+          ? React.createElement(
+              "div",
+              { className: "text-center" },
+              React.createElement(
+                "p",
+                {
+                  className: `text-lg font-semibold ${
+                    feedback.type === "correct"
+                      ? "text-green-500"
+                      : "text-red-500"
+                  }`,
+                },
+                feedback.message
+              ),
+              feedback.example
+                ? React.createElement(
+                    "p",
+                    { className: "text-lg text-gray-500 mt-1 italic" },
+                    `VD: "${feedback.example}"`
+                  )
+                : null
+            )
+          : null
+      )
+    ),
+    React.createElement(WrongAnswersModal, { 
+      isOpen: showWrongAnswersModal, 
+      onClose: () => setShowWrongAnswersModal(false), 
+      mistakes: wrongAnswers,
+      onPracticeMistakes: handlePracticeMistakes 
+    })
+  );
+};
+
+const WelcomeScreen = ({ onNameSubmit }) => {
+    const [name, setName] = useState('');
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (name.trim()) {
+            onNameSubmit(name.trim());
+        }
+    };
+
+    return React.createElement(
+        "div",
+        { className: "flex flex-col items-center justify-center min-h-screen p-4 text-center" },
+        React.createElement(
+            "div",
+            { className: "w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 border border-gray-200" },
+            React.createElement("h1", { className: "text-4xl font-bold text-sky-600 mb-2" }, "Thử thách từ vựng"),
+            React.createElement("p", { className: "text-gray-600 mb-8" }, "Nhập tên của bạn để bắt đầu học!"),
+            React.createElement(
+                "form",
+                { onSubmit: handleSubmit, className: "flex flex-col gap-4" },
+                React.createElement("input", {
+                    type: "text",
+                    value: name,
+                    onChange: (e) => setName(e.target.value),
+                    placeholder: "Tên của bạn",
+                    className: "w-full p-4 text-center text-lg bg-gray-100 border-2 border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all duration-200",
+                    maxLength: 20
+                }),
+                React.createElement(
+                    "button",
+                    {
+                        type: "submit",
+                        disabled: !name.trim(),
+                        className: "w-full p-4 bg-sky-500 text-white font-bold rounded-lg hover:bg-sky-600 transition-transform hover:scale-105 transform duration-200 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed disabled:scale-100"
+                    },
+                    "Bắt đầu học"
+                )
+            )
+        )
+    );
+};
+
+const topicColors = [
+  'bg-rose-100 border-rose-300 hover:bg-rose-200 text-rose-800 focus:ring-rose-500',
+  'bg-blue-100 border-blue-300 hover:bg-blue-200 text-blue-800 focus:ring-blue-500',
+  'bg-cyan-100 border-cyan-300 hover:bg-cyan-200 text-cyan-800 focus:ring-cyan-500',
+  'bg-amber-100 border-amber-300 hover:bg-amber-200 text-amber-800 focus:ring-amber-500',
+  'bg-violet-100 border-violet-300 hover:bg-violet-200 text-violet-800 focus:ring-violet-500',
+  'bg-fuchsia-100 border-fuchsia-300 hover:bg-fuchsia-200 text-fuchsia-800 focus:ring-fuchsia-500',
+  'bg-emerald-100 border-emerald-300 hover:bg-emerald-200 text-emerald-800 focus:ring-emerald-500',
+  'bg-sky-100 border-sky-300 hover:bg-sky-200 text-sky-800 focus:ring-sky-500',
+  'bg-lime-100 border-lime-300 hover:bg-lime-200 text-lime-800 focus:ring-lime-500',
+  'bg-orange-100 border-orange-300 hover:bg-orange-200 text-orange-800 focus:ring-orange-500',
+  'bg-teal-100 border-teal-300 hover:bg-teal-200 text-teal-800 focus:ring-teal-500',
+  'bg-indigo-100 border-indigo-300 hover:bg-indigo-200 text-indigo-800 focus:ring-indigo-500',
+  'bg-pink-100 border-pink-300 hover:bg-pink-200 text-pink-800 focus:ring-pink-500',
+  'bg-yellow-100 border-yellow-300 hover:bg-yellow-200 text-yellow-800 focus:ring-yellow-500',
+  'bg-green-100 border-green-300 hover:bg-green-200 text-green-800 focus:ring-green-500',
+];
+
+const TopicSelector = ({ playerName, onSelectTopic }) => {
+  return React.createElement(
+    "div", { className: "flex flex-col items-center min-h-screen p-4" },
+    React.createElement(
+      "div", { className: "w-full max-w-6xl text-center py-8" },
+      React.createElement("h1", { className: "text-3xl md:text-4xl font-bold text-gray-800 mb-2" }, `Chào mừng, ${playerName}!`),
+      React.createElement("p", { className: "text-lg text-gray-600 mb-8" }, "Chọn một chủ đề để bắt đầu thử thách của bạn."),
+      React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" },
+        ...vocabularyData.map((topic, index) =>
+          React.createElement(
+            "button",
+            {
+              key: index,
+              onClick: () => onSelectTopic(topic),
+              className: `p-4 rounded-lg shadow-md border hover:scale-105 transform transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-opacity-75 ${topicColors[index % topicColors.length]}`
+            },
+            React.createElement("h2", { className: "text-lg font-semibold" }, topic.title),
+            React.createElement("p", { className: "mt-1 opacity-80" }, `${topic.words.length} từ`)
+          )
+        )
+      )
+    )
+  );
+};
+
+const App = () => {
+  const [playerName, setPlayerName] = useState(() => localStorage.getItem('playerName') || '');
+  const [currentTopic, setCurrentTopic] = useState(null);
+  const [topicIndex, setTopicIndex] = useState(null);
+
+  const handleNameSubmit = useCallback((name) => {
+    localStorage.setItem('playerName', name);
+    setPlayerName(name);
+  }, []);
+
+  const handleSelectTopic = useCallback((topic) => {
+    const index = vocabularyData.findIndex(t => t.title === topic.title);
+    setCurrentTopic(topic);
+    setTopicIndex(index);
+  }, []);
+  
+  const handleReturnToMenu = useCallback(() => {
+      setCurrentTopic(null);
+      setTopicIndex(null);
+  }, []);
+
+  const handleNextTopic = useCallback(() => {
+    if (topicIndex !== null && topicIndex !== -1 && topicIndex < vocabularyData.length - 1) {
+        const nextIndex = topicIndex + 1;
+        setCurrentTopic(vocabularyData[nextIndex]);
+        setTopicIndex(nextIndex);
+    } else {
+        handleReturnToMenu();
+    }
+  }, [topicIndex, handleReturnToMenu]);
+
+  const handleStartPractice = useCallback((mistakes) => {
+    if (mistakes.length > 0) {
+        const practiceTopic = {
+            title: "Luyện tập lỗi sai",
+            words: mistakes.map(mistake => mistake.word)
+        };
+        setCurrentTopic(practiceTopic);
+        setTopicIndex(-1); // Use -1 to denote a practice session
+    }
+  }, []);
+
+  if (!playerName) {
+    return React.createElement(WelcomeScreen, { onNameSubmit: handleNameSubmit });
+  }
+
+  if (!currentTopic) {
+    return React.createElement(TopicSelector, { playerName, onSelectTopic: handleSelectTopic });
+  }
+
+  return React.createElement(Game, { 
+      key: currentTopic.title,
+      topic: currentTopic, 
+      onReturnToMenu: handleReturnToMenu, 
+      onNextTopic: handleNextTopic,
+      onStartPractice: handleStartPractice
+  });
+};
+
+// Entry point from index.tsx
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error("Could not find root element to mount to");
+}
+
+const root = ReactDOM.createRoot(rootElement);
+root.render(React.createElement(App));
+    </script>
   </body>
 </html>
